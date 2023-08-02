@@ -1,0 +1,2 @@
+Hello, frens.
+Welcome to golang service!
