@@ -10,10 +10,10 @@ import (
 
 // Define a custom struct to hold Album data.
 type Album struct {
-	Title  string
-	Artist string
-	Price  float64
-	Likes  int
+	Title  string  `redis:"title"`
+	Artist string  `redis:"artist"`
+	Price  float64 `redis:"price"`
+	Likes  int     `redis:"likes"`
 }
 
 func main() {
@@ -34,6 +34,35 @@ func main() {
 
 	// redisGetAndConversionExample(conn)
 
+	// fetchAllAndPopulateAlbum(conn)
+
+	fetchAllAndScanStructAlbum(conn)
+
+}
+
+func fetchAllAndScanStructAlbum(conn redis.Conn) {
+	// Fetch all album fields with the HGETALL command.Wrapping this
+	// in the redis.Values() function transforms the response into type
+	// []interface{}, which is the format we need to pass to
+	// redis.ScanStruct() in the next step.
+	values, err := redis.Values(conn.Do("HGETALL", "album:1"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create an instance of an Album struct and use redis.ScanStruct()
+	// to automatically unpack the data to the struct fields. This uses
+	// the struct tags to determine which data is mapped to which
+	// struct fields.
+	var album Album
+	err = redis.ScanStruct(values, &album)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%+v", album)
+}
+
+func fetchAllAndPopulateAlbum(conn redis.Conn) {
 	// Fetch all album fields with the HGETALL command. Because HGETALL
 	// returns an array reply, and because the underlying data structure
 	// in Redis is a hash, it makes sense to use the Map() helper
@@ -51,7 +80,6 @@ func main() {
 	}
 
 	fmt.Printf("%+v", album)
-
 }
 
 // Create, populate and return a pointer to a new Album struct, based
