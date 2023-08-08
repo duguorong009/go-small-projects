@@ -21,14 +21,41 @@ func main() {
 	// properly closed before exiting the main() function.
 	defer conn.Close()
 
-	// Send our command across the connection. The first parameter to
-	// Do() is always the name of the Redis command(in this example
-	// HMSET), optionally followed by any necessary arguments (in this
-	// example the key, followed by the various hash fields and values).
-	_, err = conn.Do("HMSET", "album:2", "title", "Electric Ladyland", "artist", "Jimi Hendrix", "price", 4.95, "likes", 8)
+	// // Send our command across the connection. The first parameter to
+	// // Do() is always the name of the Redis command(in this example
+	// // HMSET), optionally followed by any necessary arguments (in this
+	// // example the key, followed by the various hash fields and values).
+	// _, err = conn.Do("HMSET", "album:2", "title", "Electric Ladyland", "artist", "Jimi Hendrix", "price", 4.95, "likes", 8)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Println("Electric Ladyland added!")
+
+	// Issue a HGET command to retrieve the title for a specific album,
+	// and use the Str() helper method to convert the reply to a string.
+	title, err := redis.String(conn.Do("HGET", "album:1", "title"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Electric Ladyland added!")
+
+	// Similarly, get the artist and convert it to a string.
+	artist, err := redis.String(conn.Do("HGET", "album:1", "artist"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// And the price as a float64...
+	price, err := redis.Float64(conn.Do("HGET", "album:1", "price"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// And the number of likes as an integer
+	likes, err := redis.Int(conn.Do("HGET", "album:1", "likes"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%s by %s: £%.2f [%d likes]\n", title, artist, price, likes)
 
 }
